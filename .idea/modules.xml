@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/masfrl-licenta.iml" filepath="$PROJECT_DIR$/.idea/masfrl-licenta.iml" />
+      <module fileurl="file://D:\Repos\masfrl-licenta\.idea\masfrl-socket-bun.iml" filepath="D:\Repos\masfrl-licenta\.idea\masfrl-socket-bun.iml" />
+    </modules>
+  </component>
+</project>
