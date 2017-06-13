@@ -1,8 +1,13 @@
 __author__ = 'philippe'
-import World
+# import World
+from Environment import Environment
+from World import World as Worlds
 import threading
 import time
 import numpy as np
+
+World = Environment()
+Display = Worlds(World.actions, World.get_player(), World.x, World.y, World.specials, World.walls)
 
 
 class Learner:
@@ -29,17 +34,17 @@ class Learner:
             temp = {}
             for action in self.actions:
                 temp[action] = 0.1
-                World.set_cell_score(state, action, temp[action])
+                Display.set_cell_score(state, action, temp[action])
                 self.Q[state] = temp
 
         # Set cell scores for green blocks and red blocks
         for (i, j, c, w) in World.specials:
             for action in self.actions:
                 self.Q[(i, j)][action] = w
-                World.set_cell_score((i, j), action, w)
+                Display.set_cell_score((i, j), action, w)
 
     def do_action(self, action):
-        s = World.player
+        s = World.get_player()
         r = -World.score
         if action == self.actions[0]:
             World.try_move(0, -1)
@@ -51,7 +56,7 @@ class Learner:
             World.try_move(1, 0)
         else:
             return
-        s2 = World.player
+        s2 = World.get_player()
         r += World.score
         return s, action, r, s2
 
@@ -67,7 +72,7 @@ class Learner:
     def inc_Q(self, s, a, alpha, inc):
         self.Q[s][a] *= 1 - alpha
         self.Q[s][a] += alpha * inc
-        World.set_cell_score(s, a, self.Q[s][a])
+        Display.set_cell_score(s, a, self.Q[s][a])
 
     def run(self):
         time.sleep(1)
@@ -76,14 +81,18 @@ class Learner:
         # If its taking too long, then restart and try again
         max_run_iter = 5000
         cur_iter = 0
+
         while True:
+
+            # If we ended in an loop, restart game
             cur_iter += 1
             if cur_iter > max_run_iter:
                 cur_iter = 0
                 World.restart_game()
+                Display.restart_game(World.get_player())
 
             # Pick the right action
-            s = World.player
+            s = World.get_player()
             max_act, max_val = self.max_Q(s)
 
             # Exploration/Exploitation tradeoff
@@ -101,6 +110,7 @@ class Learner:
             t += 1.0
             if World.has_restarted():
                 World.restart_game()
+                Display.restart_game(World.get_player())
                 self.gamma *= self.gamma_decay
                 time.sleep(0.01)
                 t = 1.0
@@ -116,4 +126,4 @@ learn = Learner()
 t = threading.Thread(target=learn.run)
 t.daemon = True
 t.start()
-World.start_game()
+Display.start_game()
