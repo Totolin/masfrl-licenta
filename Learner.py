@@ -9,7 +9,8 @@ class Learner:
     def __init__(self):
 
         self.discount = 0.3
-        self.gamma = 0.8  # Initial probability
+        # Gamma decides weather we explore or not
+        self.gamma = 0.8
         self.gamma_decay = 0.99  # Exploration/exploitation tradeoff
         self.actions = World.actions
         self.states = []
@@ -18,10 +19,12 @@ class Learner:
         self.prepare()
 
     def prepare(self):
+        # Create states map based on grid
         for i in range(World.x):
             for j in range(World.y):
                 self.states.append((i, j))
 
+        # Create Q table based on all states and actions
         for state in self.states:
             temp = {}
             for action in self.actions:
@@ -29,6 +32,7 @@ class Learner:
                 World.set_cell_score(state, action, temp[action])
                 self.Q[state] = temp
 
+        # Set cell scores for green blocks and red blocks
         for (i, j, c, w) in World.specials:
             for action in self.actions:
                 self.Q[(i, j)][action] = w
@@ -109,8 +113,7 @@ class Learner:
 
 
 learn = Learner()
-learn.run()
-#t = threading.Thread(target=learn.run)
-#t.daemon = True
-#t.start()
+t = threading.Thread(target=learn.run)
+t.daemon = True
+t.start()
 World.start_game()

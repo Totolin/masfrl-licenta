@@ -3,11 +3,6 @@ import numpy as np
 from copy import copy, deepcopy
 master = Tk()
 
-class World:
-    def __init__(self):
-        self.x = 25
-        self.y = 25
-
 triangle_size = 0.1
 cell_score_min = -0.2
 cell_score_max = 0.2
