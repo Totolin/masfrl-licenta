@@ -1,5 +1,6 @@
 import numpy as np
 from copy import copy, deepcopy
+from World import World as GridDisplay
 
 
 class Environment:
@@ -22,6 +23,16 @@ class Environment:
         self.walls = []
 
         self.initialize()
+
+        # Display
+        self.display = GridDisplay(
+            self.actions,
+            self.get_player(),
+            self.x,
+            self.y,
+            self.specials,
+            self.walls
+        )
 
     def initialize(self):
         print('Initializing environment')
@@ -69,20 +80,26 @@ class Environment:
             gen_pos = (np.random.randint(self.x), np.random.randint(self.y))
             while self.map_grid[gen_pos[0]][gen_pos[1]] == 1:
                 gen_pos = (np.random.randint(self.x), np.random.randint(self.y))
-                self.specials.append((gen_pos[0], gen_pos[1], "red", -1))
+            self.specials.append((gen_pos[0], gen_pos[1], "red", -1))
         for i in range(self.green_blocks):
             gen_pos = (np.random.randint(self.x), np.random.randint(self.y))
             while self.map_grid[gen_pos[0]][gen_pos[1]] == 1:
                 gen_pos = (np.random.randint(self.x), np.random.randint(self.y))
-                self.specials.append((gen_pos[0], gen_pos[1], "green", 1))
+            self.specials.append((gen_pos[0], gen_pos[1], "green", 1))
+
+        print self.specials
 
     def get_player(self):
         return self.player
+
+    def set_cell_score(self, state, action, val):
+        self.display.set_cell_score(state, action, val)
 
     def restart_game(self):
         self.player = deepcopy(self.orig_player)
         self.score = 1
         self.restart = False
+        self.display.restart_game(self.player)
 
     def has_restarted(self):
         return self.restart
@@ -95,7 +112,8 @@ class Environment:
         self.score += self.walk_reward
         # If the new position fits the requirements
         if (new_x >= 0) and (new_x < self.x) and (new_y >= 0) and (new_y < self.y) and not (
-            (new_x, new_y) in self.walls):
+                    (new_x, new_y) in self.walls):
+            self.display.update_player(new_x, new_y)
             self.player = (new_x, new_y)
         for (i, j, c, w) in self.specials:
             if new_x == i and new_y == j:
@@ -108,3 +126,6 @@ class Environment:
                 self.restart = True
                 return
                 # print "score: ", score
+
+    def run_display(self):
+        self.display.start_game()

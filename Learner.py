@@ -1,13 +1,9 @@
-__author__ = 'philippe'
-# import World
 from Environment import Environment
-from World import World as Worlds
 import threading
 import time
 import numpy as np
 
 World = Environment()
-Display = Worlds(World.actions, World.get_player(), World.x, World.y, World.specials, World.walls)
 
 
 class Learner:
@@ -34,14 +30,14 @@ class Learner:
             temp = {}
             for action in self.actions:
                 temp[action] = 0.1
-                Display.set_cell_score(state, action, temp[action])
+                World.set_cell_score(state, action, temp[action])
                 self.Q[state] = temp
 
         # Set cell scores for green blocks and red blocks
         for (i, j, c, w) in World.specials:
             for action in self.actions:
                 self.Q[(i, j)][action] = w
-                Display.set_cell_score((i, j), action, w)
+                World.set_cell_score((i, j), action, w)
 
     def do_action(self, action):
         s = World.get_player()
@@ -72,7 +68,10 @@ class Learner:
     def inc_Q(self, s, a, alpha, inc):
         self.Q[s][a] *= 1 - alpha
         self.Q[s][a] += alpha * inc
-        Display.set_cell_score(s, a, self.Q[s][a])
+        World.set_cell_score(s, a, self.Q[s][a])
+
+    def run_display(self):
+        World.run_display()
 
     def run(self):
         time.sleep(1)
@@ -89,7 +88,6 @@ class Learner:
             if cur_iter > max_run_iter:
                 cur_iter = 0
                 World.restart_game()
-                Display.restart_game(World.get_player())
 
             # Pick the right action
             s = World.get_player()
@@ -110,7 +108,6 @@ class Learner:
             t += 1.0
             if World.has_restarted():
                 World.restart_game()
-                Display.restart_game(World.get_player())
                 self.gamma *= self.gamma_decay
                 time.sleep(0.01)
                 t = 1.0
@@ -126,4 +123,4 @@ learn = Learner()
 t = threading.Thread(target=learn.run)
 t.daemon = True
 t.start()
-Display.start_game()
+learn.run_display()

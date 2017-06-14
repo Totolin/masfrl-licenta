@@ -56,6 +56,8 @@ class World:
                                              fill="white", width=1)
 
     def render_grid(self, x, y, specials, walls):
+
+        print specials
         for i in range(x):
             for j in range(y):
                 self.board.create_rectangle(i * self.Width, j * self.Width, (i + 1) * self.Width, (j + 1) * self.Width,
@@ -83,6 +85,11 @@ class World:
             green += "0"
         color = "#" + red + green + "00"
         self.board.itemconfigure(triangle, fill=color)
+
+    def update_player(self, new_x, new_y):
+        self.board.coords(self.me, new_x * self.Width + self.Width * 2 / 10, new_y * self.Width + self.Width * 2 / 10,
+                          new_x * self.Width + self.Width * 8 / 10,
+                          new_y * self.Width + self.Width * 8 / 10)
 
     def restart_game(self, player):
         self.board.coords(
