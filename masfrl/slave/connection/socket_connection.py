@@ -18,7 +18,7 @@ class SocketConnection:
 
     def encode_message(self, message):
         return str(message)
-ub
+
     def decode_message(self, message):
         return eval(message)
 

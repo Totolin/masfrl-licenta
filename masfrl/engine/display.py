@@ -1,9 +1,12 @@
+import logging
 from Tkinter import *
-
 master = Tk()
 
+# Use module logger
+logger = logging.getLogger(__name__)
 
-class World:
+
+class Display:
     def __init__(self, actions, player, x, y, specials, walls):
         self.triangle_size = 0.1
         self.cell_score_min = -0.2
@@ -56,8 +59,6 @@ class World:
                                              fill="white", width=1)
 
     def render_grid(self, x, y, specials, walls):
-
-        print specials
         for i in range(x):
             for j in range(y):
                 self.board.create_rectangle(i * self.Width, j * self.Width, (i + 1) * self.Width, (j + 1) * self.Width,
@@ -92,6 +93,7 @@ class World:
                           new_y * self.Width + self.Width * 8 / 10)
 
     def restart_game(self, player):
+        logger.debug('Game has restarted')
         self.board.coords(
             self.me,
             player[0] * self.Width + self.Width * 2 / 10,
@@ -101,4 +103,5 @@ class World:
         )
 
     def start_game(self):
+        logger.info('Tk mainloop started')
         master.mainloop()
