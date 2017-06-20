@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from copy import copy, deepcopy
 from masfrl.engine.display import Display
 
@@ -11,8 +12,6 @@ class Environment:
 
         self.x = x
         self.y = y
-        self.orig_player = player
-        self.player = deepcopy(self.orig_player)
         self.specials = specials
         self.walls = walls
         self.walk_reward = walk_reward
@@ -20,6 +19,12 @@ class Environment:
         self.reset_score = initial_score
         self.restart = False
         self.actions = actions
+
+        if not player:
+            self.reposition_player()
+        else:
+            self.orig_player = player
+            self.player = deepcopy(self.orig_player)
 
         # Display
         self.display = Display(
@@ -30,6 +35,15 @@ class Environment:
             self.specials,
             self.walls
         )
+
+    def reposition_player(self):
+        # Reposition player in a random way
+        player = (np.random.randint(self.x), np.random.randint(self.y))
+        while player in self.walls:
+            player = (np.random.randint(self.x), np.random.randint(self.y))
+
+        self.orig_player = player
+        self.player = deepcopy(self.orig_player)
 
     def get_player(self):
         return self.player
@@ -74,4 +88,27 @@ class Environment:
         self.display.start_game()
 
 
+def stringify(environment):
+    return {
+        "x": environment.x,
+        "y": environment.y,
+        "player": deepcopy(environment.orig_player),
+        "actions": environment.actions,
+        "specials": environment.specials,
+        "walls": environment.walls,
+        "walk_reward": environment.walk_reward,
+        "initial_score": environment.reset_score
+    }
 
+
+def unstringify(stringified):
+    return Environment(
+        stringified['x'],
+        stringified['y'],
+        stringified['player'],
+        stringified['actions'],
+        stringified['specials'],
+        stringified['walls'],
+        stringified['walk_reward'],
+        stringified['initial_score']
+    )

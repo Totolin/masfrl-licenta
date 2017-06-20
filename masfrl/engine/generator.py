@@ -84,3 +84,4 @@ def generate_qlearn():
         specials.append((gen_pos[0], gen_pos[1], "green", 1))
 
     return Environment(x, y, player, actions, specials, walls, walk_reward, score)
+

@@ -2,6 +2,7 @@ import socket
 import sys
 import logging
 import time
+import masfrl.messages as messages
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +36,6 @@ class ConnectionManager:
 
         logger.info('Server started on %s' % (self.server_address,))
 
-    def encode_message(self, message):
-        return str(message)
-
-    def decode_message(self, message):
-        return eval(message)
-
     def wait_for_connections(self, expected, timeout=1000):
 
         logger.info('Waiting for %s connections' % expected)
@@ -68,11 +63,12 @@ class ConnectionManager:
         return True if len(self.clients) == expected else False
 
     def send_message(self, client_address, message):
-        encoded = self.encode_message(message)
-        self.clients[client_address].sendall(encoded)
+        encoded = messages.encode_message(message)
+        self.clients[client_address].send(encoded)
+        logger.debug('Sent message to client %s' % client_address)
 
     def receive_message(self, client_address):
-
+        logger.debug('Waiting for message from client %s' % client_address)
         # Grab connection object from our map
         connection = self.clients[client_address]
         message = ''
@@ -81,9 +77,13 @@ class ConnectionManager:
 
             # Continuously receive chunks
             data = connection.recv(1024)
-            if not data:
-                break
-            message += data
 
-        return self.decode_message(message)
+            if data:
+                message += data
+
+            if messages.stream_stop(data):
+                break
+
+        logger.debug('Received encoded message')
+        return messages.decode_message(message)
 

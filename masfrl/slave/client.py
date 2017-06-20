@@ -1,6 +1,8 @@
 from connection.socket_connection import SocketConnection
 from masfrl.engine.learner import Learner
 from masfrl.engine.generator import generate_qlearn
+from masfrl.engine.world import unstringify
+from masfrl.messages import client as messages
 
 
 class Client:
@@ -17,6 +19,9 @@ class Client:
 
         print message
 
-        env = generate_qlearn()
+        # Send ACK
+        self.connection.send_message(messages['request_work'])
+
+        env = unstringify(message['content'])
         learn = Learner(env, True)
         learn.start()
