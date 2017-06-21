@@ -37,6 +37,13 @@ class Learner:
                 self.Q[(i, j)][action] = w
                 self.environment.set_cell_score((i, j), action, w)
 
+    def import_work(self, new_Q):
+        for state in self.states:
+            for action in self.actions:
+                if state in new_Q:
+                    if new_Q[state][action] != self.Q[state][action]:
+                        self.Q[state][action] = new_Q[state][action]
+
     def do_action(self, action):
         s = self.environment.get_player()
         r = -self.environment.score

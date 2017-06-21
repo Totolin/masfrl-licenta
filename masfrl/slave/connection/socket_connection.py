@@ -35,7 +35,7 @@ class SocketConnection:
         return messages.decode_message(message)
 
     def send_message(self, message):
-        logger.debug('Sending message to server: %s' % message)
+        logger.debug('Sending message to server')
 
         # Encode message
         message = messages.encode_message(message)

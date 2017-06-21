@@ -1,12 +1,13 @@
 import logging
 import coloredlogs
-from pynput import keyboard
 
 from connection.manager import ConnectionManager
 from masfrl.messages import server as messages
 from masfrl.engine.generator import generate_qlearn
 from masfrl.engine.world import stringify
+from masfrl.engine.learner import Learner
 from masfrl.engine.splitter import split_environment
+from utils.keyboard import listen_for_enter
 
 # Use module logger
 logger = logging.getLogger(__name__)
@@ -35,33 +36,43 @@ class Server:
             # Grab clients map
             clients = self.connection_manager.clients
 
+            # Create environment for them to work on
+            environment = generate_qlearn()
+
             for client_address in clients:
-                # After splitting
-                environment = generate_qlearn()
                 client_env = split_environment(environment, 1)
                 message = messages['work']
-                message['content'] = stringify(client_env)
+                message['content'] = client_env
 
                 # Send work to client
                 self.connection_manager.send_message(client_address, message)
 
                 # Wait for ack
-                response = self.connection_manager.receive_message(client_address)
-                print response
+                # response = self.connection_manager.receive_message(client_address)
+                # print response
 
             logger.info('All clients informed, waiting for keypress')
 
-            # def on_press(key):
-            #     try:
-            #         k = key.char  # single-char keys
-            #     except:
-            #         k = key.name  # other keys
-            #     if key == keyboard.Key.esc: return False  # stop listener
-            #     if k in ['1', '2', 'left', 'right']:  # keys interested
-            #         # self.keys.append(k) # store it in global-like variable
-            #         print('Key pressed: ' + k)
-            #         return False  # remove this if want more keys
-            #
-            # lis = keyboard.Listener(on_press=on_press)
-            # lis.start()  # start to listen on a separate thread
-            # lis.join()  # no this if main thread is polling self.keys
+            # Listen for a keypress (specifically, Enter key)
+            listen_for_enter()
+
+            # Create learner to resume work
+            learner = Learner(environment, True)
+
+            # Request info back from clients
+            for client_address in clients:
+                message = messages['request_work']
+
+                # Send request_work to client
+                self.connection_manager.send_message(client_address, message)
+
+                # Expect work back
+                response = self.connection_manager.receive_message(client_address)
+
+                #learner.import_work(response['content'])
+
+            learner.start()
+
+
+
+

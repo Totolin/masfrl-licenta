@@ -101,6 +101,19 @@ def stringify(environment):
     }
 
 
+def stringify_properties(x, y, player, actions, specials, walls, walk_reward, initial_score):
+    return {
+        "x": x,
+        "y": y,
+        "player": player,
+        "actions": actions,
+        "specials": specials,
+        "walls": walls,
+        "walk_reward": walk_reward,
+        "initial_score": initial_score
+    }
+
+
 def unstringify(stringified):
     return Environment(
         stringified['x'],

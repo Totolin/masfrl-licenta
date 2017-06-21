@@ -1,6 +1,6 @@
 client = {
-    "request_work": {
-        "type": "request",
+    "send_work": {
+        "type": "response",
         "content": "work"
     }
 }
@@ -9,6 +9,10 @@ server = {
     "work": {
         "type": "work",
         "content": ""
+    },
+    "request_work": {
+        "type": "request",
+        "content": "work"
     }
 }
 

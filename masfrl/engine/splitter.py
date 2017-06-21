@@ -1,4 +1,4 @@
-from world import Environment
+from world import Environment, stringify_properties
 
 
 def split_environment(environment, agents):
@@ -22,7 +22,7 @@ def split_environment(environment, agents):
                 split_specials.append((x, y, c, w))
 
     # manually split for now
-    return Environment(
+    return stringify_properties(
         split_x,
         split_y,
         None,
