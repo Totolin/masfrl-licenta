@@ -33,7 +33,7 @@ class Client:
 
         # Create learner using received environment
         env = unstringify(message['content'])
-        self.learner = Learner(env, True)
+        self.learner = Learner(env, False)
 
         # Run learner on separate thread
         self.learner_thread = threading.Thread(target=self.learner.start)

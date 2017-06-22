@@ -7,7 +7,7 @@ host = 'localhost'
 port = 8000
 if str(sys.argv[1]) == 'server':
     server = Server(host, port)
-    server.run()
+    server.run(2)
 else:
     client = Client(host, port)
     client.work()

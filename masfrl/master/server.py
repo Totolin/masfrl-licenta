@@ -39,17 +39,18 @@ class Server:
             # Create environment for them to work on
             environment = generate_qlearn()
 
+            # Split environment to number of agents
+            split_env = split_environment(environment, expected_clients)
+
+            env_index = 0
             for client_address in clients:
-                client_env = split_environment(environment, 1)
+                clients[client_address]['work'] = split_env[env_index]
+                env_index += 1
                 message = messages['work']
-                message['content'] = client_env
+                message['content'] = clients[client_address]['work']
 
                 # Send work to client
                 self.connection_manager.send_message(client_address, message)
-
-                # Wait for ack
-                # response = self.connection_manager.receive_message(client_address)
-                # print response
 
             logger.info('All clients informed, waiting for keypress')
 
@@ -69,9 +70,12 @@ class Server:
                 # Expect work back
                 response = self.connection_manager.receive_message(client_address)
 
-                #learner.import_work(response['content'])
+                learner.import_work(response['content'])
 
             learner.start()
+
+
+
 
 
 

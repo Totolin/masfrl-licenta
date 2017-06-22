@@ -52,7 +52,10 @@ class ConnectionManager:
             connection, client_address = self.sock.accept()
 
             # Save connection
-            self.clients[str(client_address)] = connection
+            self.clients[str(client_address)] = {
+                "connection": connection,
+                "work": None
+            }
 
             logger.info('Received connection from %s' % str(client_address))
 
@@ -64,13 +67,13 @@ class ConnectionManager:
 
     def send_message(self, client_address, message):
         encoded = messages.encode_message(message)
-        self.clients[client_address].send(encoded)
+        self.clients[client_address]['connection'].send(encoded)
         logger.debug('Sent message to client %s' % client_address)
 
     def receive_message(self, client_address):
         logger.debug('Waiting for message from client %s' % client_address)
         # Grab connection object from our map
-        connection = self.clients[client_address]
+        connection = self.clients[client_address]['connection']
         message = ''
 
         while True:

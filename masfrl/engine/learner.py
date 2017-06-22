@@ -1,7 +1,9 @@
 import threading
 import time
 import numpy as np
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Learner:
     def __init__(self, environment, display=False):
@@ -38,11 +40,14 @@ class Learner:
                 self.environment.set_cell_score((i, j), action, w)
 
     def import_work(self, new_Q):
+        logger.info('Importing work from agent')
         for state in self.states:
             for action in self.actions:
                 if state in new_Q:
                     if new_Q[state][action] != self.Q[state][action]:
+                        logger.debug('Importing cell value for state %s' % str(state))
                         self.Q[state][action] = new_Q[state][action]
+                        self.environment.set_cell_score(state, action, new_Q[state][action])
 
     def do_action(self, action):
         s = self.environment.get_player()
