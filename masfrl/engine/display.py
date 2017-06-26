@@ -105,3 +105,7 @@ class Display:
     def start_game(self):
         logger.info('Tk mainloop started')
         master.mainloop()
+
+    def stop_game(self):
+        logger.info('Stopping display')
+        master.quit()

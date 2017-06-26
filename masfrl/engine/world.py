@@ -20,6 +20,10 @@ class Environment:
         self.restart = False
         self.actions = actions
 
+        # Remember previous results
+        self.successful = False
+        self.previous_result = False
+
         if not player:
             self.reposition_player()
         else:
@@ -36,17 +40,24 @@ class Environment:
             self.walls
         )
 
-    def reposition_player(self):
-        # Reposition player in a random way
-        player = (np.random.randint(self.x), np.random.randint(self.y))
-        while player in self.walls:
+    def reposition_player(self, new_player=None):
+        if not new_player:
+            # Reposition player in a random way
             player = (np.random.randint(self.x), np.random.randint(self.y))
+            while player in self.walls:
+                player = (np.random.randint(self.x), np.random.randint(self.y))
 
-        self.orig_player = player
-        self.player = deepcopy(self.orig_player)
+            self.orig_player = player
+            self.player = deepcopy(self.orig_player)
+        else:
+            self.orig_player = deepcopy(new_player)
+            self.player = deepcopy(self.orig_player)
 
     def get_player(self):
         return self.player
+
+    def get_orig_player(self):
+        return deepcopy(self.orig_player)
 
     def set_cell_score(self, state, action, val):
         self.display.set_cell_score(state, action, val)
@@ -78,14 +89,22 @@ class Environment:
                 self.score += w
                 if self.score > 0:
                     logger.info("Obtained a positive score : %s" % str(self.score))
+                    if self.previous_result:
+                        self.successful = True
+                    self.previous_result = True
                 else:
-                    logger.info("Obtained a negative score : %s" % str(self.score))
+                    logger.error("Obtained a negative score : %s" % str(self.score))
+                    self.previous_result = False
+                    self.successful = False
                 self.restart = True
                 return
                 # print "score: ", score
 
     def run_display(self):
         self.display.start_game()
+
+    def stop_display(self):
+        self.display.stop_game()
 
 
 def stringify(environment):

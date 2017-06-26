@@ -18,6 +18,8 @@ class Learner:
         self.Q = {}
         self.show_display = display
         self.prepare()
+        self.running = True
+        self.working_thread = None
 
     def prepare(self):
         # Create states map based on grid
@@ -44,8 +46,8 @@ class Learner:
         for state in self.states:
             for action in self.actions:
                 if state in new_Q:
-                    if new_Q[state][action] != self.Q[state][action]:
-                        logger.debug('Importing cell value for state %s' % str(state))
+                    if new_Q[state][action] != 0.1:
+                        # logger.debug('Importing cell value for state %s, action %s' % (str(state), str(action)))
                         self.Q[state][action] = new_Q[state][action]
                         self.environment.set_cell_score(state, action, new_Q[state][action])
 
@@ -85,12 +87,20 @@ class Learner:
 
     def start(self):
         if self.show_display:
-            t = threading.Thread(target=self.run)
-            t.daemon = True
-            t.start()
+            self.working_thread = threading.Thread(target=self.run)
+            self.working_thread.daemon = True
+            self.working_thread.start()
             self.run_display()
         else:
             self.run()
+
+    def stop(self):
+        if self.show_display:
+            self.environment.stop_display()
+            self.running = False
+            self.working_thread.join()
+        else:
+            self.running = False
 
     def run(self):
         if self.show_display:
@@ -101,12 +111,13 @@ class Learner:
         max_run_iter = 5000
         cur_iter = 0
 
-        while True:
+        while self.running:
 
             # If we the maximum number of iterations, restart game
             cur_iter += 1
             if cur_iter > max_run_iter:
                 cur_iter = 0
+                logger.warn('Maximum iterations reached. Restarting game')
                 self.environment.restart_game()
 
             # Pick the right action

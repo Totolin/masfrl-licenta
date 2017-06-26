@@ -9,6 +9,6 @@ if str(sys.argv[1]) == 'server':
     server = Server(host, port)
     server.run(2)
 else:
-    client = Client(host, port)
+    client = Client(host, port, False)
     client.work()
 

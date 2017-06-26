@@ -70,7 +70,11 @@ class Server:
                 # Expect work back
                 response = self.connection_manager.receive_message(client_address)
 
-                learner.import_work(response['content'])
+                # Reposition player to last successful position
+                if response['content']['successful']:
+                    learner.environment.reposition_player(response['content']['player'])
+
+                learner.import_work(response['content']['Q'])
 
             learner.start()
 

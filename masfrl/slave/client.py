@@ -7,7 +7,7 @@ from masfrl.messages import client
 
 
 class Client:
-    def __init__(self, host, port):
+    def __init__(self, host, port, run_display=True):
         # Open a socket connection to the server
         self.connection = SocketConnection(host, port)
 
@@ -16,16 +16,28 @@ class Client:
 
         # Learner
         self.learner = None
-        self.learner_thread = None
+        self.worker_thread = None
+
+        # Display flag
+        self.run_display = run_display
 
     def send_work(self):
         # Receive notification from server to send work back
         self.connection.receive_message()
 
+        # Compose return message
         message = client['send_work']
-        message['content'] = self.learner.Q
+        message['content'] = {
+            "Q": self.learner.Q,
+            "player": self.learner.environment.get_orig_player(),
+            "successful": self.learner.environment.successful
+        }
+
+        # Send back to server
         self.connection.send_message(message)
-        sys.exit(0)
+
+        # Message received, stop learner
+        self.learner.stop()
 
     def work(self):
         # Inform server we need work
@@ -33,12 +45,15 @@ class Client:
 
         # Create learner using received environment
         env = unstringify(message['content'])
-        self.learner = Learner(env, False)
+        self.learner = Learner(env, self.run_display)
 
-        # Run learner on separate thread
-        self.learner_thread = threading.Thread(target=self.learner.start)
-        self.learner_thread.daemon = True
-        self.learner_thread.start()
+        # Listen for a message on a separate thread
+        self.worker_thread = threading.Thread(target=self.send_work)
+        self.worker_thread.daemon = True
+        self.worker_thread.start()
 
-        # Wait for send work message
-        self.send_work()
+        # Run learner on main thread
+        self.learner.start()
+
+        # Exit script
+        sys.exit(0)
