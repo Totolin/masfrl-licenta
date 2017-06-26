@@ -103,7 +103,7 @@ class Learner:
 
         while True:
 
-            # If we ended in an loop, restart game
+            # If we the maximum number of iterations, restart game
             cur_iter += 1
             if cur_iter > max_run_iter:
                 cur_iter = 0
