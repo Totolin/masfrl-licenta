@@ -20,6 +20,7 @@ class Learner:
         self.prepare()
         self.running = True
         self.working_thread = None
+        self.alpha = 1
 
     def prepare(self):
         # Create states map based on grid
@@ -50,6 +51,11 @@ class Learner:
                         # logger.debug('Importing cell value for state %s, action %s' % (str(state), str(action)))
                         self.Q[state][action] = new_Q[state][action]
                         self.environment.set_cell_score(state, action, new_Q[state][action])
+
+    def import_learner(self, new_learner):
+        self.environment.reposition_player(new_learner['player'])
+        self.gamma = new_learner['gamma']
+        self.alpha = new_learner['alpha']
 
     def do_action(self, action):
         s = self.environment.get_player()
@@ -105,7 +111,6 @@ class Learner:
     def run(self):
         if self.show_display:
             time.sleep(1)
-        alpha = 1
         t = 1
         # If its taking too long, then restart and try again
         max_run_iter = 5000
@@ -132,7 +137,7 @@ class Learner:
 
             # Update Q
             max_act, max_val = self.max_Q(s2)
-            self.inc_Q(s, a, alpha, r + self.discount * max_val)
+            self.inc_Q(s, a, self.alpha, r + self.discount * max_val)
 
             # Check if the game has restarted
             t += 1.0
@@ -144,9 +149,18 @@ class Learner:
                 t = 1.0
 
             # Update the learning rate
-            alpha = pow(t, -0.1)
+            self.alpha = pow(t, -0.1)
 
             # Reduce sleep time to get results faster
             if self.show_display:
                 time.sleep(0.01)
+
+    def to_string(self):
+        return {
+            "gamma": self.gamma,
+            "alpha": self.alpha,
+            "Q": self.Q,
+            "player": self.environment.get_orig_player(),
+            "successful": self.environment.successful
+        }
 

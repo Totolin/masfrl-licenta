@@ -27,11 +27,7 @@ class Client:
 
         # Compose return message
         message = client['send_work']
-        message['content'] = {
-            "Q": self.learner.Q,
-            "player": self.learner.environment.get_orig_player(),
-            "successful": self.learner.environment.successful
-        }
+        message['content'] = self.learner.to_string()
 
         # Send back to server
         self.connection.send_message(message)

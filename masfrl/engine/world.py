@@ -84,7 +84,6 @@ class Environment:
             self.player = (new_x, new_y)
         for (i, j, c, w) in self.specials:
             if new_x == i and new_y == j:
-                logger.debug('Color: %s, Gained Score: %s, Current score: %s' % (c, w, self.score))
                 self.score -= self.walk_reward
                 self.score += w
                 if self.score > 0:
