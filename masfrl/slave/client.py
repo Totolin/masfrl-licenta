@@ -1,3 +1,9 @@
+"""
+    MASFRL-Client class.
+    Holds all communication and work means that a distributed agent
+    needs. Communicates with the server using given parameters.
+"""
+
 import sys
 import threading
 from connection.socket_connection import SocketConnection
@@ -8,6 +14,13 @@ from masfrl.messages import client
 
 class Client:
     def __init__(self, host, port, run_display=True):
+        """
+        Constructor for the MASFRL-Client class.
+        :param host: address of the MASFRL-Server instance (Master)
+        :param port: port of the MASFRL-Server instance
+        :param run_display: True if display driver should show the work running
+                            This will slow down the execution.
+        """
         # Open a socket connection to the server
         self.connection = SocketConnection(host, port)
 
@@ -22,6 +35,11 @@ class Client:
         self.run_display = run_display
 
     def send_work(self):
+        """
+        Sends work back to MASFRL-Server.
+        Should be executed only after MASFRL-Server asked for work.
+        :return: 
+        """
         # Receive notification from server to send work back
         self.connection.receive_message()
 
@@ -36,6 +54,12 @@ class Client:
         self.learner.stop()
 
     def work(self):
+        """
+        Starts listening for a work message from MASFRL-Server.
+        Once received, will start running chosen RL algorithm on given
+        environment.
+        :return: 
+        """
         # Inform server we need work
         message = self.connection.receive_message()
 

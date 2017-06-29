@@ -93,12 +93,12 @@ class Learner:
 
     def start(self):
         if self.show_display:
-            self.working_thread = threading.Thread(target=self.run)
+            self.working_thread = threading.Thread(target=self.run_sarsa)
             self.working_thread.daemon = True
             self.working_thread.start()
             self.run_display()
         else:
-            self.run()
+            self.run_sarsa()
 
     def stop(self):
         if self.show_display:
@@ -138,6 +138,55 @@ class Learner:
             # Update Q
             max_act, max_val = self.max_Q(s2)
             self.inc_Q(s, a, self.alpha, r + self.discount * max_val)
+
+            # Check if the game has restarted
+            t += 1.0
+            if self.environment.has_restarted():
+                self.environment.restart_game()
+                self.gamma *= self.gamma_decay
+                if self.show_display:
+                    time.sleep(0.01)
+                t = 1.0
+
+            # Update the learning rate
+            self.alpha = pow(t, -0.1)
+
+            # Reduce sleep time to get results faster
+            if self.show_display:
+                time.sleep(0.01)
+
+    def run_sarsa(self):
+        if self.show_display:
+            time.sleep(1)
+        t = 1
+        # If its taking too long, then restart and try again
+        max_run_iter = 5000
+        cur_iter = 0
+        previous_action = None
+
+        while self.running:
+
+            # If we the maximum number of iterations, restart game
+            cur_iter += 1
+            if cur_iter > max_run_iter:
+                cur_iter = 0
+                logger.warn('Maximum iterations reached. Restarting game')
+                self.environment.restart_game()
+
+            # Pick the right action
+            s = self.environment.get_player()
+            max_act, max_val = self.max_Q(s)
+
+            # Exploration/Exploitation tradeoff
+            if np.random.rand(1) <= self.gamma:
+                max_act = np.random.choice(self.actions)
+
+            (s, a, r, s2) = self.do_action(max_act)
+
+            # Update Q
+            max_act, max_val = self.max_Q(s2)
+            qnext = self.Q[s2][max_act]
+            self.inc_Q(s, a, self.alpha, r + self.discount * qnext)
 
             # Check if the game has restarted
             t += 1.0

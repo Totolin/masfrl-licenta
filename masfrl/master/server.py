@@ -1,3 +1,9 @@
+"""
+    MASFRL-Server class.
+    Opens socket listener, holds all MASFRL-Client connections, distributes
+    work based on number of clients, assembles back work.
+"""
+
 import logging
 import coloredlogs
 import utils.io as io
@@ -20,6 +26,14 @@ coloredlogs.install(level='DEBUG')
 
 class Server:
     def __init__(self, host, port):
+        """
+        Constructor for the MASFRL-Server class
+        Starts a socket listener on given host and port
+        Waits for connections based on given number
+        Distributes work, assembles back once agents are done.
+        :param host: host address to listen on
+        :param port: port to listen on
+        """
         logger.debug('Creating server instance')
 
         # Create a connection manager
@@ -29,7 +43,13 @@ class Server:
         self.connection_manager.start_listening(1)
 
     def run(self, expected_clients=0, env_dict=None, write_env=False):
-
+        """
+        Run MASFRL-Server instance, using given parameters.
+        :param expected_clients: Number of clients to wait for
+        :param env_dict: Given environment to distribute
+        :param write_env: Save generated environment
+        :return: 
+        """
         # Create environment for clients to work on
         if not env_dict:
             environment = generate_qlearn()
