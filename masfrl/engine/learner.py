@@ -5,6 +5,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Define usable algorithms for the Learner as static list
+leaner_algs = ['qlearn', 'sarsa']
+
+
 class Learner:
     def __init__(self, environment, display=False):
 
@@ -21,6 +25,11 @@ class Learner:
         self.running = True
         self.working_thread = None
         self.alpha = 1
+
+        self.algorithm_methods = {
+            "qlearn": self.qlearn,
+            "sarsa": self.sarsa
+        }
 
     def prepare(self):
         # Create states map based on grid
@@ -91,14 +100,21 @@ class Learner:
     def run_display(self):
         self.environment.run_display()
 
-    def start(self):
+    def start(self, algorithm):
+        if algorithm not in self.algorithm_methods:
+            return False
+
+        # Select proper algorithm to run on environment
+        alg = self.algorithm_methods[algorithm]
+
+        # Run it, either with display or without
         if self.show_display:
-            self.working_thread = threading.Thread(target=self.run_sarsa)
+            self.working_thread = threading.Thread(target=alg)
             self.working_thread.daemon = True
             self.working_thread.start()
             self.run_display()
         else:
-            self.run_sarsa()
+            alg()
 
     def stop(self):
         if self.show_display:
@@ -108,7 +124,7 @@ class Learner:
         else:
             self.running = False
 
-    def run(self):
+    def qlearn(self):
         if self.show_display:
             time.sleep(1)
         t = 1
@@ -155,14 +171,14 @@ class Learner:
             if self.show_display:
                 time.sleep(0.01)
 
-    def run_sarsa(self):
+    def sarsa(self):
         if self.show_display:
             time.sleep(1)
         t = 1
+
         # If its taking too long, then restart and try again
         max_run_iter = 5000
         cur_iter = 0
-        previous_action = None
 
         while self.running:
 
@@ -212,4 +228,3 @@ class Learner:
             "player": self.environment.get_orig_player(),
             "successful": self.environment.successful
         }
-

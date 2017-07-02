@@ -6,12 +6,14 @@
 
 import logging
 import coloredlogs
+import numpy as np
+
 import utils.io as io
 
 from connection.manager import ConnectionManager
 from masfrl.messages import server as messages
 from masfrl.engine.generator import generate_qlearn
-from masfrl.engine.learner import Learner
+from masfrl.engine.learner import Learner, leaner_algs
 from masfrl.engine.splitter import split_environment
 from utils.keyboard import listen_for_enter
 from masfrl.engine.world import unstringify
@@ -42,9 +44,10 @@ class Server:
         # Listen to desired port
         self.connection_manager.start_listening(1)
 
-    def run(self, expected_clients=0, env_dict=None, write_env=False):
+    def run(self, expected_clients=0, env_dict=None, algorithm=None, write_env=False):
         """
         Run MASFRL-Server instance, using given parameters.
+        :param algorithm: Selected algorithm for the run
         :param expected_clients: Number of clients to wait for
         :param env_dict: Given environment to distribute
         :param write_env: Save generated environment
@@ -56,6 +59,10 @@ class Server:
         else:
             environment = unstringify(env_dict)
 
+        # Select algorithm that agents will run on:
+        if not algorithm:
+            algorithm = np.random.choice(leaner_algs)
+
         # Save it if it's required
         if write_env:
             io.save_env(environment)
@@ -63,7 +70,7 @@ class Server:
         if expected_clients == 0:
             # Work alone
             learner = Learner(environment, True)
-            learner.start()
+            learner.start(algorithm)
 
         else:
             # Wait for all of our clients
@@ -78,10 +85,16 @@ class Server:
 
                 env_index = 0
                 for client_address in clients:
+                    # Select client's share of the algorithm
                     clients[client_address]['work'] = split_env[env_index]
                     env_index += 1
+
+                    # Create standard work message
                     message = messages['work']
-                    message['content'] = clients[client_address]['work']
+                    message['content'] = {
+                        "environment": clients[client_address]['work'],
+                        "algorithm": algorithm
+                    }
 
                     # Send work to client
                     self.connection_manager.send_message(client_address, message)
@@ -111,11 +124,4 @@ class Server:
 
                     learner.import_work(response['content']['Q'])
 
-                learner.start()
-
-
-
-
-
-
-
+                learner.start(algorithm)

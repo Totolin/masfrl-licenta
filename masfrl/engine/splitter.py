@@ -29,7 +29,6 @@ def split_environment(environment, agents, length=40):
                 if not (corner_right[0] >= i >= corner_left[0]) or not (corner_right[1] >= j >= corner_left[1]):
                     split_walls.append((i, j))
 
-        # manually split for now
         split_env.append(stringify_properties(
             length,
             length,

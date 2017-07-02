@@ -64,7 +64,8 @@ class Client:
         message = self.connection.receive_message()
 
         # Create learner using received environment
-        env = unstringify(message['content'])
+        env = unstringify(message['content']['environment'])
+        algorithm = message['content']['algorithm']
         self.learner = Learner(env, self.run_display)
 
         # Listen for a message on a separate thread
@@ -73,7 +74,7 @@ class Client:
         self.worker_thread.start()
 
         # Run learner on main thread
-        self.learner.start()
+        self.learner.start(algorithm)
 
         # Exit script
         sys.exit(0)
