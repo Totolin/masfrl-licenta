@@ -16,6 +16,7 @@ class Environment:
         self.walls = walls
         self.walk_reward = walk_reward
         self.score = initial_score
+        self.max_score = initial_score
         self.reset_score = initial_score
         self.restart = False
         self.actions = actions
@@ -63,13 +64,25 @@ class Environment:
         self.display.set_cell_score(state, action, val)
 
     def restart_game(self):
+        # Reposition player on the grid
         self.player = deepcopy(self.orig_player)
+
+        # Save maximum score obtained
+        if self.score > self.max_score:
+            self.max_score = self.score
+
+        # Reset score
         self.score = self.reset_score
         self.restart = False
+
+        # Restart Tkinter display
         self.display.restart_game(self.player)
 
     def has_restarted(self):
         return self.restart
+
+    def get_max_score(self):
+        return self.max_score
 
     def try_move(self, dx, dy):
         if self.restart:

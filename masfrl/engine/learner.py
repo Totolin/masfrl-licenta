@@ -226,5 +226,6 @@ class Learner:
             "alpha": self.alpha,
             "Q": self.Q,
             "player": self.environment.get_orig_player(),
+            "score": self.environment.get_max_score(),
             "successful": self.environment.successful
         }

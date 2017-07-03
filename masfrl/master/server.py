@@ -108,6 +108,7 @@ class Server:
                 learner = Learner(environment, True)
 
                 # Request info back from clients
+                best_score = 0
                 for client_address in clients:
                     message = messages['request_work']
 
@@ -119,8 +120,10 @@ class Server:
 
                     # Reposition player to last successful position
                     if response['content']['successful']:
-                        learner.import_learner(response['content'])
-                        logger.info('Importing learner by client %s ' % str(client_address))
+                        if response['content']['score'] > best_score:
+                            best_score = response['content']['score']
+                            learner.import_learner(response['content'])
+                            logger.info('Importing learner by client %s ' % str(client_address))
 
                     learner.import_work(response['content']['Q'])
 
