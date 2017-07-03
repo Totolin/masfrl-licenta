@@ -158,6 +158,7 @@ class Learner:
             # Check if the game has restarted
             t += 1.0
             if self.environment.has_restarted():
+                cur_iter = 0
                 self.environment.restart_game()
                 self.gamma *= self.gamma_decay
                 if self.show_display:
@@ -207,6 +208,7 @@ class Learner:
             # Check if the game has restarted
             t += 1.0
             if self.environment.has_restarted():
+                cur_iter = 0
                 self.environment.restart_game()
                 self.gamma *= self.gamma_decay
                 if self.show_display:
