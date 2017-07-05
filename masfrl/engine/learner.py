@@ -31,6 +31,9 @@ class Learner:
             "sarsa": self.sarsa
         }
 
+        self.set_show_display(display)
+        self.display_updates = {}
+
     def prepare(self):
         # Create states map based on grid
         for i in range(self.environment.x):
@@ -42,29 +45,43 @@ class Learner:
             temp = {}
             for action in self.actions:
                 temp[action] = 0.1
-                self.environment.set_cell_score(state, action, temp[action])
+                if self.show_display:
+                    self.environment.set_cell_score(state, action, temp[action])
                 self.Q[state] = temp
 
         # Set cell scores for green blocks and red blocks
         for (i, j, c, w) in self.environment.specials:
             for action in self.actions:
                 self.Q[(i, j)][action] = w
-                self.environment.set_cell_score((i, j), action, w)
+                if self.show_display:
+                    self.environment.set_cell_score((i, j), action, w)
+
+    def set_show_display(self, show_display):
+        self.show_display = show_display
+        self.environment.show_display = show_display
 
     def import_work(self, new_Q):
         logger.info('Importing work from agent')
+        logger.disabled = True
         for state in self.states:
             for action in self.actions:
                 if state in new_Q:
                     if new_Q[state][action] != 0.1:
                         # logger.debug('Importing cell value for state %s, action %s' % (str(state), str(action)))
                         self.Q[state][action] = new_Q[state][action]
-                        self.environment.set_cell_score(state, action, new_Q[state][action])
+                        if self.show_display:
+                            self.environment.set_cell_score(state, action, new_Q[state][action])
+                        else:
+                            self.display_updates[(state, action)] = new_Q[state][action]
 
     def import_learner(self, new_learner):
         self.environment.reposition_player(new_learner['player'])
         self.gamma = new_learner['gamma']
         self.alpha = new_learner['alpha']
+
+    def update_display(self):
+        for (state, action) in self.display_updates:
+            self.environment.set_cell_score(state, action, self.display_updates[(state, action)])
 
     def do_action(self, action):
         s = self.environment.get_player()
@@ -95,12 +112,17 @@ class Learner:
     def inc_Q(self, s, a, alpha, inc):
         self.Q[s][a] *= 1 - alpha
         self.Q[s][a] += alpha * inc
-        self.environment.set_cell_score(s, a, self.Q[s][a])
+        if self.show_display:
+            self.environment.set_cell_score(s, a, self.Q[s][a])
+        else:
+            self.display_updates[(s, a)] = self.Q[s][a]
 
     def run_display(self):
         self.environment.run_display()
 
     def start(self, algorithm):
+        self.running = True
+
         if algorithm not in self.algorithm_methods:
             return False
 
@@ -124,21 +146,24 @@ class Learner:
         else:
             self.running = False
 
+    def resume(self):
+        self.running = True
+        self.qlearn()
+
     def qlearn(self):
         if self.show_display:
             time.sleep(1)
         t = 1
         # If its taking too long, then restart and try again
-        max_run_iter = 5000
+        max_run_iter = 500
         cur_iter = 0
 
         while self.running:
-
             # If we the maximum number of iterations, restart game
             cur_iter += 1
             if cur_iter > max_run_iter:
                 cur_iter = 0
-                logger.warn('Maximum iterations reached. Restarting game')
+                #logger.warn('Maximum iterations reached. Restarting game')
                 self.environment.restart_game()
 
             # Pick the right action
@@ -182,12 +207,11 @@ class Learner:
         cur_iter = 0
 
         while self.running:
-
             # If we the maximum number of iterations, restart game
             cur_iter += 1
             if cur_iter > max_run_iter:
                 cur_iter = 0
-                logger.warn('Maximum iterations reached. Restarting game')
+                #logger.warn('Maximum iterations reached. Restarting game')
                 self.environment.restart_game()
 
             # Pick the right action

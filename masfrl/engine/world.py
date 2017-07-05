@@ -20,6 +20,9 @@ class Environment:
         self.reset_score = initial_score
         self.restart = False
         self.actions = actions
+        self.show_display = False
+        self.hit_wall = 0
+        self.log = True
 
         # Remember previous results
         self.successful = False
@@ -61,11 +64,14 @@ class Environment:
         return deepcopy(self.orig_player)
 
     def set_cell_score(self, state, action, val):
-        self.display.set_cell_score(state, action, val)
+        if self.show_display:
+            self.display.set_cell_score(state, action, val)
 
     def restart_game(self):
         # Reposition player on the grid
-        self.player = deepcopy(self.orig_player)
+        self.player = (np.random.randint(self.x), np.random.randint(self.y))
+        while self.player in self.walls:
+            self.player = (np.random.randint(self.x), np.random.randint(self.y))
 
         # Save maximum score obtained
         if self.score > self.max_score:
@@ -76,7 +82,8 @@ class Environment:
         self.restart = False
 
         # Restart Tkinter display
-        self.display.restart_game(self.player)
+        if self.show_display:
+            self.display.restart_game(self.player)
 
     def has_restarted(self):
         return self.restart
@@ -93,30 +100,43 @@ class Environment:
         # If the new position fits the requirements
         if (new_x >= 0) and (new_x < self.x) and (new_y >= 0) and (new_y < self.y) and not (
                     (new_x, new_y) in self.walls):
-            self.display.update_player(new_x, new_y)
+            if self.show_display:
+                self.display.update_player(new_x, new_y)
             self.player = (new_x, new_y)
+            self.hit_wall = 0
+        else:
+            self.hit_wall += 1
+            if self.hit_wall == 10:
+                self.restart = True
+                self.hit_wall = 0
+
         for (i, j, c, w) in self.specials:
             if new_x == i and new_y == j:
                 self.score -= self.walk_reward
                 self.score += w
                 if self.score > 0:
-                    logger.info("Obtained a positive score : %s" % str(self.score))
+                    if self.log:
+                        logger.info("Obtained a positive score : %s" % str(self.score))
                     if self.previous_result:
                         self.successful = True
                     self.previous_result = True
                 else:
-                    logger.error("Obtained a negative score : %s" % str(self.score))
+                    if self.log:
+                        logger.error("Obtained a negative score : %s" % str(self.score))
                     self.previous_result = False
                     self.successful = False
                 self.restart = True
+                self.hit_wall = 0
                 return
                 # print "score: ", score
 
     def run_display(self):
-        self.display.start_game()
+        if self.show_display:
+            self.display.start_game()
 
     def stop_display(self):
-        self.display.stop_game()
+        if self.show_display:
+            self.display.stop_game()
 
 
 def stringify(environment):

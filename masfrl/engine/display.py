@@ -93,7 +93,6 @@ class Display:
                           new_y * self.Width + self.Width * 8 / 10)
 
     def restart_game(self, player):
-        logger.debug('Game has restarted')
         self.board.coords(
             self.me,
             player[0] * self.Width + self.Width * 2 / 10,

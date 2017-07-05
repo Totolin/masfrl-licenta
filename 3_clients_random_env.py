@@ -9,7 +9,7 @@ port = 8000
 if str(sys.argv[1]) == 'server':
     # Read environment file
     server = Server(host, port)
-    server.run(2, io.load_env(), 'qlearn')
+    server.run(3, algorithm='qlearn')
 else:
-    client = Client(host, port, False)
+    client = Client(host, port, True)
     client.work()

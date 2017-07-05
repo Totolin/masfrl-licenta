@@ -7,7 +7,7 @@
 import logging
 import coloredlogs
 import numpy as np
-
+from threading import Thread
 import utils.io as io
 
 from connection.manager import ConnectionManager
@@ -17,6 +17,7 @@ from masfrl.engine.learner import Learner, leaner_algs
 from masfrl.engine.splitter import split_environment
 from utils.keyboard import listen_for_enter
 from masfrl.engine.world import unstringify
+
 
 # Use module logger
 logger = logging.getLogger(__name__)
@@ -105,7 +106,7 @@ class Server:
                 listen_for_enter()
 
                 # Create learner to resume work
-                learner = Learner(environment, True)
+                learner = Learner(environment, False)
 
                 # Request info back from clients
                 best_score = 0
@@ -127,4 +128,20 @@ class Server:
 
                     learner.import_work(response['content']['Q'])
 
+                learner.environment.log = False
+                logger.warn('Merging work...')
+                thread = Thread(target=learner.start, args=(algorithm,))
+                thread.start()
+
+                # Listen for a key to start showing the display
+                listen_for_enter()
+
+                # Stop the learner
+                learner.stop()
+                thread.join()
+
+                # Show display, and resume
+                learner.environment.log = True
+                learner.set_show_display(True)
+                learner.update_display()
                 learner.start(algorithm)
